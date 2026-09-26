@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>❄️ Admin Panel ❄️</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  
+  body {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  #snow-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+  
+  .snowflake {
+    position: absolute;
+    top: -10px;
+    color: #fff;
+    font-size: 1em;
+    user-select: none;
+    pointer-events: none;
+    animation: fall linear infinite;
+    opacity: 0.9;
+    text-shadow: 0 0 5px rgba(255,255,255,0.8);
+  }
+  
+  @keyframes fall {
+    0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+    100% { transform: translateY(110vh) translateX(100px) rotate(360deg); }
+  }
+  
+  .container { max-width: 900px; margin: 0 auto; position: relative; z-index: 2; }
+  
+  .login-box {
+    max-width: 420px;
+    margin: 100px auto;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 2;
+  }
+  
+  .login-box h1 {
+    text-align: center;
+    color: #74ebd5;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+  }
+  
+  .login-box p {
+    text-align: center;
+    color: #8ba3ae;
+    margin-bottom: 30px;
+  }
+  
+  .login-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 1em;
+    transition: all 0.3s;
+  }
+  
+  .login-box input:focus {
+    outline: none;
+    border-color: #74ebd5;
+    box-shadow: 0 0 15px rgba(116,235,213,0.4);
+  }
+  
+  .login-box button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #74ebd5, #4fc3f7);
+    color: #0f2027;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .login-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(116,235,213,0.5);
+  }
+  
+  .login-error {
+    color: #ff6b6b;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9em;
+  }
+  
+  .login-hint {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85em;
+    color: #8ba3ae;
+    padding: 12px;
+    background: rgba(116,235,213,0.1);
+    border-radius: 10px;
+    border: 1px dashed rgba(116,235,213,0.3);
+  }
+  
+  #dashboard { display: none; }
+  
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .topbar .logo {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #74ebd5;
+  }
+  
+  .topbar .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  
+  .topbar a, .topbar button {
+    color: #74ebd5;
+    text-decoration: none;
+    padding: 8px 18px;
+    border: 2px solid #74ebd5;
+    border-radius: 10px;
+    font-weight: bold;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.95em;
+  }
+  
+  .topbar a:hover, .topbar button:hover {
+    background: #74ebd5;
+    color: #0f2027;
+    box-shadow: 0 0 15px rgba(116,235,213,0.6);
+  }
+  
+  .topbar .logout { border-color: #ff6b6b; color: #ff6b6b; }
+  .topbar .logout:hover { background: #ff6b6b; color: white; box-shadow: 0 0 15px rgba(255,107,107,0.6); }
+  
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .stat-card {
+    background: rgba(255,255,255,0.06);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    border-left: 4px solid #74ebd5;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s;
+  }
+  
+  .stat-card:hover { transform: translateY(-5px); }
+  .stat-card .num { font-size: 2.2em; font-weight: bold; color: #74ebd5; }
+  .stat-card .label { color: #8ba3ae; margin-top: 5px; font-size: 0.9em; }
+  
+  .card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  .card h2 {
+    color: #74ebd5;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+  }
+  
+  .upload-area {
+    border: 3px dashed #74ebd5;
+    border-radius: 15px;
+    padding: 50px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(116,235,213,0.05);
+  }
+  
+  .upload-area:hover {
+    background: rgba(116,235,213,0.15);
+    border-color: #ffffff;
+    transform: scale(1.02);
+  }
+  
+  .upload-area .icon { font-size: 4em; display: block; margin-bottom: 15px; }
+  .upload-area p { color: #a8c5d1; font-size: 1.1em; }
+  .upload-area span { color: #74ebd5; font-weight: bold; }
+  
+  #fileInput { display: none; }
+  
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  .preview-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 2px solid #74ebd5;
+    box-shadow: 0 0 15px rgba(116,235,213,0.3);
+  }
+  
+  .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .preview-item .remove {
+    position: absolute;
+    top: 5px; right: 5px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .preview-item .remove:hover { background: #cc0000; }
+  
+  .form-group { margin-bottom: 20px; }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #74ebd5;
+    font-weight: 600;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 1em;
+    transition: all 0.3s;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #74ebd5;
+    box-shadow: 0 0 15px rgba(116,235,213,0.4);
+  }
+  
+  .form-group textarea { resize: vertical; min-height: 120px; font-family: inherit; }
+  .form-group select option { background: #0f2027; }
+  
+  .btn-submit {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #74ebd5, #4fc3f7);
+    color: #0f2027;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 20px rgba(116,235,213,0.4);
+  }
+  
+  .btn-submit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 35px rgba(116,235,213,0.6);
+  }
+  
+  .post-item {
+    background: rgba(255, 255, 255, 0.06);
+    border-left: 4px solid #74ebd5;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.4s ease;
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .post-author { font-weight: bold; color: #74ebd5; }
+  .post-time { color: #8ba3ae; font-size: 0.9em; }
+  
+  .post-category {
+    background: linear-gradient(135deg, #74ebd5, #4fc3f7);
+    color: #0f2027;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  
+  .post-content {
+    line-height: 1.7;
+    color: #dde6eb;
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+  }
+  
+  .post-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .post-images img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+  }
+  
+  .post-images img:hover {
+    transform: scale(1.05);
+    border-color: #74ebd5;
+    box-shadow: 0 0 20px rgba(116,235,213,0.5);
+  }
+  
+  .post-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95em;
+    transition: all 0.3s;
+    color: white;
+  }
+  
+  .btn-delete { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); }
+  .btn-delete:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,107,107,0.5); }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8ba3ae;
+    font-style: italic;
+    font-size: 1.1em;
+  }
+  
+  .empty-state .icon { font-size: 3em; display: block; margin-bottom: 15px; }
+  
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  
+  .modal.show { display: flex; }
+  .modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(116,235,213,0.5);
+  }
+  
+  .toast {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    padding: 18px 30px;
+    border-radius: 12px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    transform: translateX(500px);
+    transition: transform 0.4s ease;
+    z-index: 1000;
+  }
+  
+  .toast.show { transform: translateX(0); }
+  
+  @media (max-width: 600px) {
+    .card { padding: 20px; }
+    .upload-area { padding: 30px 15px; }
+    .topbar { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div id="snow-container"></div>
+
+<div class="container">
+
+  <div class="login-box" id="loginBox">
+    <h1>❄️ Admin Login ❄️</h1>
+    <p>Đăng nhập để quản lý và đăng bài phốt</p>
+    <input type="text" id="username" placeholder="👤 Tên đăng nhập">
+    <input type="password" id="password" placeholder="🔑 Mật khẩu">
+    <button onclick="login()">🚀 Đăng nhập</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">
+      💡 Tài khoản mặc định: <b>admin</b> / <b>123456</b>
+    </div>
+  </div>
+
+  <div id="dashboard">
+    <div class="topbar">
+      <div class="logo">❄️ ADMIN PANEL</div>
+      <div class="actions">
+        <a href="index.html">🌐 Xem trang chủ</a>
+        <button class="logout" onclick="logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="num" id="statTotal">0</div>
+        <div class="label">📊 Tổng bài đăng</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statImages">0</div>
+        <div class="label">🖼️ Tổng số ảnh</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statToday">0</div>
+        <div class="label">📅 Bài hôm nay</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📸 Đăng bài phốt mới</h2>
+      
+      <div class="form-group">
+        <label>🖼️ Hình ảnh (có thể chọn nhiều)</label>
+        <div class="upload-area" id="uploadArea">
+          <span class="icon">📷</span>
+          <p>Nhấn vào đây hoặc <span>kéo thả ảnh</span> vào</p>
+          <p style="font-size: 0.9em; margin-top: 8px; color: #6b8a96;">Hỗ trợ JPG, PNG, GIF</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        <div class="preview-grid" id="previewGrid"></div>
+      </div>
+
+      <div class="form-group">
+        <label>👤 Người đăng</label>
+        <input type="text" id="authorName" placeholder="VD: Admin..." value="Admin" maxlength="50">
+      </div>
+
+      <div class="form-group">
+        <label>🏷️ Danh mục</label>
+        <select id="category">
+          <option value="Bóc phốt">🔥 Bóc phốt</option>
+          <option value="Cảnh báo">⚠️ Cảnh báo</option>
+          <option value="Tố cáo">🚨 Tố cáo</option>
+          <option value="Chia sẻ">💬 Chia sẻ</option>
+          <option value="Khác">📌 Khác</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📝 Nội dung phốt</label>
+        <textarea id="content" placeholder="Kể chi tiết câu chuyện ở đây..." maxlength="2000"></textarea>
+      </div>
+
+      <button class="btn-submit" onclick="submitPost()">🚀 ĐĂNG BÀI NGAY</button>
+    </div>
+
+    <div class="card">
+      <h2>📰 Quản lý bài đăng</h2>
+      <div id="postList">
+        <div class="empty-state">
+          <span class="icon">❄️</span>
+          Chưa có bài phốt nào.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Thành công!</div>
+<div class="modal" id="imageModal" onclick="closeModal()">
+  <img id="modalImg" src="">
+</div>
+
+<script>
+  const ADMIN_USER = 'admin';
+  const ADMIN_PASS = '123456'; // ⚠️ Đổi mật khẩu tại đây!
+
+  // ===== TUYẾT RƠI =====
+  function createSnow() {
+    const container = document.getElementById('snow-container');
+    const snowChars = ['❄', '❅', '❆', '•', '*', '❄'];
+    const count = 60;
+    
+    for (let i = 0; i < count; i++) {
+      const snow = document.createElement('div');
+      snow.className = 'snowflake';
+      snow.textContent = snowChars[Math.floor(Math.random() * snowChars.length)];
+      snow.style.left = Math.random() * 100 + '%';
+      snow.style.fontSize = (Math.random() * 15 + 8) + 'px';
+      snow.style.animationDuration = (Math.random() * 8 + 6) + 's';
+      snow.style.animationDelay = (Math.random() * 10) + 's';
+      snow.style.opacity = (Math.random() * 0.5 + 0.4);
+      container.appendChild(snow);
+    }
+  }
+  
+  createSnow();
+
+  // ===== LOGIN =====
+  function login() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    const err = document.getElementById('loginError');
+
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      sessionStorage.setItem('adminLogged', 'true');
+      showDashboard();
+      err.textContent = '';
+    } else {
+      err.textContent = '❌ Sai tài khoản hoặc mật khẩu!';
+    }
+  }
+
+  function logout() {
+    if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
+    sessionStorage.removeItem('adminLogged');
+    location.reload();
+  }
+
+  function showDashboard() {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadPosts();
+  }
+
+  document.getElementById('password').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') login();
+  });
+
+  if (sessionStorage.getItem('adminLogged') === 'true') {
+    showDashboard();
+  }
+
+  // ===== UPLOAD ẢNH =====
+  let selectedFiles = [];
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const previewGrid = document.getElementById('previewGrid');
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.background = 'rgba(116,235,213,0.25)';
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.background = 'rgba(116,235,213,0.05)';
+  });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.background = 'rgba(116,235,213,0.05)';
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('image/')) selectedFiles.push(file);
+    });
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    previewGrid.innerHTML = '';
+    selectedFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.innerHTML = `
+          <img src="${e.target.result}">
+          <button class="remove" onclick="removeFile(${index})">×</button>
+        `;
+        previewGrid.appendChild(div);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderPreviews();
+  }
+
+  function submitPost() {
+    const author = document.getElementById('authorName').value.trim() || 'Admin';
+    const category = document.getElementById('category').value;
+    const content = document.getElementById('content').value.trim();
+
+    if (selectedFiles.length === 0 && !content) {
+      showToast('⚠️ Vui lòng thêm ảnh hoặc nội dung!', '#ff6b6b');
+      return;
+    }
+
+    const imagePromises = selectedFiles.map(file => new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    }));
+
+    Promise.all(imagePromises).then(images => {
+      const posts = JSON.parse(localStorage.getItem('phostPosts') || '[]');
+      posts.unshift({
+        id: Date.now(),
+        author,
+        category,
+        content,
+        images,
+        time: new Date().toLocaleString('vi-VN')
+      });
+      
+      try {
+        localStorage.setItem('phostPosts', JSON.stringify(posts));
+      } catch (e) {
+        showToast('⚠️ Bộ nhớ đầy, ảnh quá lớn!', '#ff6b6b');
+        return;
+      }
+
+      selectedFiles = [];
+      previewGrid.innerHTML = '';
+      document.getElementById('content').value = '';
+      fileInput.value = '';
+
+      loadPosts();
+      showToast('✅ Đăng bài thành công!', '#00b894');
+    });
+  }
+
+  function loadPosts() {
+    const posts = JSON.parse(localStorage.getItem('phostPosts') || '[]');
+    const postList = document.getElementById('postList');
+
+    document.getElementById('statTotal').textContent = posts.length;
+    const totalImages = posts.reduce((sum, p) => sum + (p.images ? p.images.length : 0), 0);
+    document.getElementById('statImages').textContent = totalImages;
+    
+    const today = new Date().toLocaleDateString('vi-VN');
+    const todayCount = posts.filter(p => p.time.includes(today)).length;
+    document.getElementById('statToday').textContent = todayCount;
+
+    if (posts.length === 0) {
+      postList.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">❄️</span>
+          Chưa có bài phốt nào.
+        </div>
+      `;
+      return;
+    }
+
+    postList.innerHTML = posts.map(post => `
+      <div class="post-item">
+        <div class="post-header">
+          <div>
+            <span class="post-author">👤 ${escapeHtml(post.author)}</span>
+            <span class="post-category">${escapeHtml(post.category)}</span>
+          </div>
+          <span class="post-time">${post.time}</span>
+        </div>
+        ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
+        ${post.images && post.images.length > 0 ? `
+          <div class="post-images">
+            ${post.images.map(img => `<img src="${img}" onclick="openModal('${img}')">`).join('')}
+          </div>
+        ` : ''}
+        <div class="post-actions">
+          <button class="btn btn-delete" onclick="deletePost(${post.id})">🗑️ Xóa bài</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function deletePost(id) {
+    if (!confirm('Bạn có chắc muốn xóa bài này?')) return;
+    const posts = JSON.parse(localStorage.getItem('phostPosts') || '[]');
+    const filtered = posts.filter(p => p.id !== id);
+    localStorage.setItem('phostPosts', JSON.stringify(filtered));
+    loadPosts();
+    showToast('🗑️ Đã xóa bài!', '#ff6b6b');
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showToast(msg, color) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.background = `linear-gradient(135deg, ${color}, ${color}dd)`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function openModal(src) {
+    document.getElementById('modalImg').src = src;
+    document.getElementById('imageModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('imageModal').classList.remove('show');
+  }
+
+  window.addEventListener('storage', loadPosts);
+  setInterval(() => {
+    if (sessionStorage.getItem('adminLogged') === 'true') loadPosts();
+  }, 3000);
+</script>
+
+</body>
+</html>
